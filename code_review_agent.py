@@ -106,11 +106,27 @@ def main(folder_path, branch_name):
     output(f"Processing folder: {folder_path}", color="yellow")
     diff_result = checkout_and_merge_branch(folder_path, branch_name, active_branch)
 
+def send_to_claude(diff_result):
+    # Assuming you have a function to send data to Claude
+    # Replace this with actual implementation to send data to Claude
+    response = anthropic_client.completions.create(
+        model="claude-3-5-sonnet-20240620",
+        prompt=f"System prompt: {diff_result}",
+        max_tokens=100
+    )
+    return response
+
+    if diff_result:
+        response = send_to_claude(diff_result)
+        output(f"Response from Claude: {response}", color="green")
+    else:
+        output("No diff result to send to Claude.", color="red")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
     parser.add_argument("--folder", required=True, help="Path to the folder")
     parser.add_argument("--branch", required=True, help="Name of the branch to compare against")
-    
+
     args = parser.parse_args()
-    
+
     main(args.folder, args.branch)
