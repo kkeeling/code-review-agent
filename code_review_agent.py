@@ -3,6 +3,7 @@ import sys
 import subprocess
 import argparse
 from colorama import Fore, Style, init
+from halo import Halo
 from anthropic import Anthropic
 
 # Initialize colorama
@@ -94,12 +95,13 @@ def run_code_review_agent(git_diff, branch_name):
     ]
 
     output("Sending the diff result to Claude...", color="green")
-    response = client.messages.create(
-        model="claude-3-5-sonnet-20240620",
-        max_tokens=4000,
-        system=system_prompt,
-        messages=messages
-    )
+    with Halo(text='Waiting for Claude to respond...', spinner='dots'):
+        response = client.messages.create(
+            model="claude-3-5-sonnet-20240620",
+            max_tokens=4000,
+            system=system_prompt,
+            messages=messages
+        )
 
     # Process the response
     output("Processing the response from Claude...", color="green")
