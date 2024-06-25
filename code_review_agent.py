@@ -12,6 +12,7 @@ def main(folder_path):
     if not is_git_repository(folder_path):
         print(f"The provided path '{folder_path}' is not a git repository.")
         return
+    
     print(f"Processing folder: {folder_path}")
 
 if __name__ == "__main__":
