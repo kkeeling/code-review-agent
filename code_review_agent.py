@@ -3,7 +3,7 @@ import sys
 import subprocess
 import argparse
 from colorama import Fore, Style, init
-from anthropic import AnthropicClient
+from anthropic import Anthropic
 
 # Initialize colorama
 init()
@@ -38,7 +38,7 @@ def branch_exists(folder_path, branch_name):
         print(f"Error checking if branch exists: {e}")
         return False
 
-def checkout_and_merge_branch(folder_path, branch_name, active_branch):
+def get_diff(folder_path, branch_name, active_branch):
     try:
         # Checkout the branch_name (ex. main)
         subprocess.run(["git", "checkout", branch_name], cwd=folder_path, check=True)
@@ -77,50 +77,69 @@ def get_active_git_branch(folder_path):
         print(f"Error detecting git branch: {e}")
         return None
 
-def main(folder_path, branch_name):
+def run_code_review_agent(git_diff, branch_name):
     # Initialize the Anthropic client
-    anthropic_client = AnthropicClient(api_key="your_api_key_here")
+    client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
+    # Load the system prompt
+    system_prompt = "You are a code review agent that reviews code for potential issues."  # fallback system prompt
+    with open("system_prompt.md", "r") as file:
+        system_prompt = file.read()
+
+    messages = [
+        {"role": "user", "content": f"# INPUT\n$> git --no-pager diff {branch_name}\n\n{git_diff}"}
+    ]
+
+    response = client.messages.create(
+        model="claude-3-5-sonnet-20240620",
+        max_tokens=4000,
+        system=system_prompt,
+        messages=messages
+    )
+
+    output(f"Response from Claude:\n\n{response}", color="green")
+
+def main(folder_path, branch_name):
+    # check if ANTHROPIC_API_KEY is set
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        output("ERROR: ANTHROPIC_API_KEY is not set.", color="red")
+        exit(1)
+
+    # Check if the provided path is a valid directory
     if not os.path.isdir(folder_path):
         output(f"ERROR: The provided path '{folder_path}' is not a valid directory.", color="red")
         exit(1)
 
+    # Check if the provided path is a git repository
     if not is_git_repository(folder_path):
         output(f"ERROR: The provided path '{folder_path}' is not a git repository.", color="red")
         exit(1)
     
+    # Check if the specified branch exists in the repository
     if not branch_exists(folder_path, branch_name):
         output(f"ERROR: The branch '{branch_name}' does not exist in the repository.", color="red")
         exit(1)
 
+    # Get the active git branch
     active_branch = get_active_git_branch(folder_path)
-    
+
+    # Check if the active git branch could be determined
     if not active_branch:
         output("ERROR: Could not determine the active git branch.", color="red")
         exit(1)
 
+    # Check if the active branch and the specified branch are the same
     if active_branch == branch_name:
         output(f"ERROR: Active branch and specified branch are the same: {active_branch}", color="red")
         exit(1)
 
+    # Get the diff between the active branch and the specified branch
     output(f"Processing folder: {folder_path}", color="yellow")
-    diff_result = checkout_and_merge_branch(folder_path, branch_name, active_branch)
+    diff_result = get_diff(folder_path, branch_name, active_branch)
+    
+    # Run the code review agent
+    run_code_review_agent(diff_result, active_branch)
 
-def send_to_claude(anthropic_client, diff_result):
-    # Assuming you have a function to send data to Claude
-    # Replace this with actual implementation to send data to Claude
-    response = anthropic_client.completions.create(
-        model="claude-3-5-sonnet-20240620",
-        prompt=f"System prompt: {diff_result}",
-        max_tokens=100
-    )
-    return response
-
-    if diff_result:
-        response = send_to_claude(anthropic_client, diff_result)
-        output(f"Response from Claude: {response}", color="green")
-    else:
-        output("No diff result to send to Claude.", color="red")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
