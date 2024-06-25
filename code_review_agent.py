@@ -101,7 +101,6 @@ def main(folder_path, branch_name):
 
     output(f"Processing folder: {folder_path}", color="yellow")
     diff_result = checkout_and_merge_branch(folder_path, branch_name, active_branch)
-    output(f"Diff with branch '{branch_name}':\n{diff_result}", color="blue")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
