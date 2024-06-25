@@ -37,22 +37,15 @@ def checkout_and_merge_branch(folder_path, branch_name):
     try:
         # Checkout the branch_name
         subprocess.run(["git", "checkout", branch_name], cwd=folder_path, check=True)
-        output(f"Checked out branch '{branch_name}'", color="green")
 
         # Perform a git pull
         subprocess.run(["git", "pull"], cwd=folder_path, check=True)
-        output(f"Pulled latest changes for branch '{branch_name}'", color="green")
-
-        # Get the active branch before checkout
-        active_branch = get_active_git_branch(folder_path)
 
         # Checkout the active branch again
-        subprocess.run(["git", "checkout", active_branch], cwd=folder_path, check=True)
-        output(f"Checked out back to active branch '{active_branch}'", color="green")
+        subprocess.run(["git", "checkout", branch_name], cwd=folder_path, check=True)
 
         # Merge the branch_name into the active branch
         subprocess.run(["git", "merge", branch_name], cwd=folder_path, check=True)
-        output(f"Merged branch '{branch_name}' into '{active_branch}'", color="green")
 
         # Return the result of "git --no-pager diff branch_name"
         result = subprocess.run(["git", "--no-pager", "diff", branch_name], cwd=folder_path, check=True, text=True, stdout=subprocess.PIPE)
