@@ -35,14 +35,13 @@ def branch_exists(folder_path, branch_name):
 
 def checkout_and_merge_branch(folder_path, branch_name, active_branch):
     try:
-        # Checkout the branch_name
+        # Checkout the branch_name (ex. main)
         subprocess.run(["git", "checkout", branch_name], cwd=folder_path, check=True)
 
         # Perform a git pull
         subprocess.run(["git", "pull"], cwd=folder_path, check=True)
 
-
-        # Checkout the active branch again
+        # Checkout the active branch again (your branch)
         subprocess.run(["git", "checkout", active_branch], cwd=folder_path, check=True)
 
         # Merge the branch_name into the active branch
