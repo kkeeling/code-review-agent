@@ -33,6 +33,34 @@ def branch_exists(folder_path, branch_name):
         print(f"Error checking if branch exists: {e}")
         return False
 
+def checkout_and_merge_branch(folder_path, branch_name):
+    try:
+        # Checkout the branch_name
+        subprocess.run(["git", "checkout", branch_name], cwd=folder_path, check=True)
+        output(f"Checked out branch '{branch_name}'", color="green")
+
+        # Perform a git pull
+        subprocess.run(["git", "pull"], cwd=folder_path, check=True)
+        output(f"Pulled latest changes for branch '{branch_name}'", color="green")
+
+        # Get the active branch before checkout
+        active_branch = get_active_git_branch(folder_path)
+
+        # Checkout the active branch again
+        subprocess.run(["git", "checkout", active_branch], cwd=folder_path, check=True)
+        output(f"Checked out back to active branch '{active_branch}'", color="green")
+
+        # Merge the branch_name into the active branch
+        subprocess.run(["git", "merge", branch_name], cwd=folder_path, check=True)
+        output(f"Merged branch '{branch_name}' into '{active_branch}'", color="green")
+
+        # Output the result of "git --no-pager diff branch_name"
+        result = subprocess.run(["git", "--no-pager", "diff", branch_name], cwd=folder_path, check=True, text=True, stdout=subprocess.PIPE)
+        output(f"Diff with branch '{branch_name}':\n{result.stdout}", color="blue")
+
+    except subprocess.CalledProcessError as e:
+        output(f"Error during git operations: {e}", color="red")
+
 def get_active_git_branch(folder_path):
     try:
         result = subprocess.run(
@@ -73,7 +101,8 @@ def main(folder_path, branch_name):
     if active_branch == branch_name:
         output(f"The active branch '{active_branch}' matches the specified branch '{branch_name}'.", color="green")
     else:
-      output(f"Processing folder: {folder_path}", color="yellow")
+        output(f"Processing folder: {folder_path}", color="yellow")
+        checkout_and_merge_branch(folder_path, branch_name)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
