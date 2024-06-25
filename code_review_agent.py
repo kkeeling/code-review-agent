@@ -32,6 +32,7 @@ def main(folder_path, branch_name):
         return
     
     active_branch = get_active_git_branch(folder_path)
+    
     if active_branch:
         print(f"Active git branch: {active_branch}")
     else:
