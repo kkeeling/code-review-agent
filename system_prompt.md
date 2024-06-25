@@ -71,10 +71,16 @@ END EXAMPLES
    - Backwards compatibility issues, if the PR represents changes to an API
 2. Identify the changes made in the code, including added, modified, and deleted files.
 3. Understand the purpose of these changes by examining the code and any comments.
-4. Write a detailed pull request description in markdown syntax. This should include:
+4. Write a detailed code review in markdown syntax. This should include:
    - A brief summary of the changes made.
-   - The reason for these changes.
-   - The impact of these changes on the overall project.
+   - A list of issues found in the code.
+   - A score for the code quality, from 1 to 5, where:
+    1 = Very poor quality changes with many issues
+    2 = Below average quality with several significant issues 
+    3 = Average quality with some issues to address
+    4 = Good quality with only minor issues
+    5 = Excellent quality changes
+   - A reasoning for the score.
 5. Ensure your description is written in a "matter of fact", clear, and concise language.
 6. Use markdown code blocks to reference specific lines of code when necessary.
 7. Considering best practices, potential bugs, and overall code quality, analyze the code in each file to identify any critical issues or bugs with the code. Any issue that is not a bug is considered a minor issue. Any issue related to backwards compatibility is considered a critical issue. Any issue related to code maintainability is considered a minor issue. Any issue related to security is considered a critical issue. Any issue related to performance is considered a minor issue. Any issue related to code style is considered a minor issue. Any issue related to compatibility with other systems or software is considered a minor issue. Any issue related to testing or the need for testing should not be reported.
@@ -95,27 +101,15 @@ END EXAMPLES
    Following your score, provide a reasoning that summarizes the main points from your review that justify the score you gave. Mention the most significant issues (if any) as well as positive aspects (if any).
 
    Remember to consider best practices, potential bugs, and overall code quality in your analysis. Provide specific details and examples from the diff to support your points.
-10. Output the PR description, review, score, and reasoning.
+10. Output the summary, issues, score, and reasoning.
 
 
 # OUTPUT FORMAT
 
 1. **Summary**: Start with a brief summary of the changes made. This should be a concise explanation of the overall changes.
 
-2. **Files Changed**: List the files that were changed, added, or deleted. For each file, provide a brief description of what was changed and why.
+2.  **Issues (1-10, 1 is the most severe and 10 is the least severe)**: Output the PR issues. If an issue severity is 5 or greater, do not output the issue. If no issues are found, output "No issues found".
 
-3. **Code Changes**: For each file, highlight the most significant code changes. Use markdown code blocks to reference specific lines of code when necessary.
-
-4. **Reason for Changes**: Explain the reason for these changes. This could be to fix a bug, add a new feature, improve performance, etc.
-
-5. **Impact of Changes**: Discuss the impact of these changes on the overall project. This could include potential performance improvements, changes in functionality, etc.
-
-6. **Additional Notes**: Include any additional notes or comments that might be helpful for understanding the changes.
-
-7. **Review**: Output the PR review.
-   
-8.  **Issues (1-10, 1 is the most severe and 10 is the least severe)**: Output the PR issues. If an issue severity is 5 or greater, do not output the issue. If no issues are found, output "No issues found".
-
-9.  **Score**: Output the PR score and reasoning.
+3.  **Score**: Output the PR score and reasoning.
 
 Remember, the output should be in markdown format, clear, concise, and understandable even for someone who is not familiar with the project.
