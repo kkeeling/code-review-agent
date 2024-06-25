@@ -6,6 +6,19 @@ import argparse
 def is_git_repository(folder_path):
     return os.path.isdir(os.path.join(folder_path, '.git'))
 
+def branch_exists(folder_path, branch_name):
+    try:
+        result = subprocess.run(
+            ["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch_name}"],
+            cwd=folder_path,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        return result.returncode == 0
+    except Exception as e:
+        print(f"Error checking if branch exists: {e}")
+        return False
+
 def get_active_git_branch(folder_path):
     try:
         result = subprocess.run(
@@ -32,6 +45,10 @@ def main(folder_path, branch_name):
         print(f"The provided path '{folder_path}' is not a git repository.")
         return
     
+    if not branch_exists(folder_path, branch_name):
+        print(f"The branch '{branch_name}' does not exist in the repository.")
+        return
+
     active_branch = get_active_git_branch(folder_path)
     
     if active_branch:
