@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import argparse
 
 def is_git_repository(folder_path):
     return os.path.isdir(os.path.join(folder_path, '.git'))
@@ -46,7 +47,10 @@ def main(folder_path, branch_name):
     print(f"Processing folder: {folder_path}")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python code_review_agent.py <folder_path> <branch_name>")
-    else:
-        main(sys.argv[1], sys.argv[2])
+    parser = argparse.ArgumentParser(description="Process a git repository folder.")
+    parser.add_argument("--folder", required=True, help="Path to the folder")
+    parser.add_argument("--branch", required=True, help="Name of the branch to compare against")
+    
+    args = parser.parse_args()
+    
+    main(args.folder, args.branch)
