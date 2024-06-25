@@ -3,6 +3,7 @@ import sys
 import subprocess
 import argparse
 from colorama import Fore, Style, init
+from anthropic import AnthropicClient
 
 # Initialize colorama
 init()
@@ -77,6 +78,9 @@ def get_active_git_branch(folder_path):
         return None
 
 def main(folder_path, branch_name):
+    # Initialize the Anthropic client
+    anthropic_client = AnthropicClient(api_key="your_api_key_here")
+
     if not os.path.isdir(folder_path):
         output(f"ERROR: The provided path '{folder_path}' is not a valid directory.", color="red")
         exit(1)
