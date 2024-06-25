@@ -41,8 +41,11 @@ def checkout_and_merge_branch(folder_path, branch_name):
         # Perform a git pull
         subprocess.run(["git", "pull"], cwd=folder_path, check=True)
 
+        # Get the active branch before checkout
+        active_branch = get_active_git_branch(folder_path)
+
         # Checkout the active branch again
-        subprocess.run(["git", "checkout", branch_name], cwd=folder_path, check=True)
+        subprocess.run(["git", "checkout", active_branch], cwd=folder_path, check=True)
 
         # Merge the branch_name into the active branch
         subprocess.run(["git", "merge", branch_name], cwd=folder_path, check=True)
@@ -53,6 +56,7 @@ def checkout_and_merge_branch(folder_path, branch_name):
 
     except subprocess.CalledProcessError as e:
         output(f"Error during git operations: {e}", color="red")
+        return None
 
 def get_active_git_branch(folder_path):
     try:
