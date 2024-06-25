@@ -33,7 +33,7 @@ def branch_exists(folder_path, branch_name):
         print(f"Error checking if branch exists: {e}")
         return False
 
-def checkout_and_merge_branch(folder_path, branch_name):
+def checkout_and_merge_branch(folder_path, branch_name, active_branch):
     try:
         # Checkout the branch_name
         subprocess.run(["git", "checkout", branch_name], cwd=folder_path, check=True)
@@ -41,8 +41,6 @@ def checkout_and_merge_branch(folder_path, branch_name):
         # Perform a git pull
         subprocess.run(["git", "pull"], cwd=folder_path, check=True)
 
-        # Get the active branch before checkout
-        active_branch = get_active_git_branch(folder_path)
 
         # Checkout the active branch again
         subprocess.run(["git", "checkout", active_branch], cwd=folder_path, check=True)
@@ -99,7 +97,7 @@ def main(folder_path, branch_name):
         exit(1)
 
     output(f"Processing folder: {folder_path}", color="yellow")
-    diff_result = checkout_and_merge_branch(folder_path, branch_name)
+    diff_result = checkout_and_merge_branch(folder_path, branch_name, active_branch)
     output(f"Diff with branch '{branch_name}':\n{diff_result}", color="blue")
 
 if __name__ == "__main__":
