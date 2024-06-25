@@ -54,9 +54,9 @@ def checkout_and_merge_branch(folder_path, branch_name):
         subprocess.run(["git", "merge", branch_name], cwd=folder_path, check=True)
         output(f"Merged branch '{branch_name}' into '{active_branch}'", color="green")
 
-        # Output the result of "git --no-pager diff branch_name"
+        # Return the result of "git --no-pager diff branch_name"
         result = subprocess.run(["git", "--no-pager", "diff", branch_name], cwd=folder_path, check=True, text=True, stdout=subprocess.PIPE)
-        output(f"Diff with branch '{branch_name}':\n{result.stdout}", color="blue")
+        return result.stdout
 
     except subprocess.CalledProcessError as e:
         output(f"Error during git operations: {e}", color="red")
@@ -102,7 +102,8 @@ def main(folder_path, branch_name):
         output(f"The active branch '{active_branch}' matches the specified branch '{branch_name}'.", color="green")
     else:
         output(f"Processing folder: {folder_path}", color="yellow")
-        checkout_and_merge_branch(folder_path, branch_name)
+        diff_result = checkout_and_merge_branch(folder_path, branch_name)
+        output(f"Diff with branch '{branch_name}':\n{diff_result}", color="blue")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
