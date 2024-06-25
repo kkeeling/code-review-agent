@@ -80,30 +80,30 @@ def get_active_git_branch(folder_path):
 
 def main(folder_path, branch_name):
     if not os.path.isdir(folder_path):
-        output(f"The provided path '{folder_path}' is not a valid directory.", color="red")
-        return
+        output(f"ERROR: The provided path '{folder_path}' is not a valid directory.", color="red")
+        exit(1)
 
     if not is_git_repository(folder_path):
-        output(f"The provided path '{folder_path}' is not a git repository.", color="red")
-        return
+        output(f"ERROR: The provided path '{folder_path}' is not a git repository.", color="red")
+        exit(1)
     
     if not branch_exists(folder_path, branch_name):
-        output(f"The branch '{branch_name}' does not exist in the repository.", color="red")
-        return
+        output(f"ERROR: The branch '{branch_name}' does not exist in the repository.", color="red")
+        exit(1)
 
     active_branch = get_active_git_branch(folder_path)
     
-    if active_branch:
-        output(f"Active git branch: {active_branch}", color="green")
-    else:
-        output("Could not determine the active git branch.", color="red")
-    
+    if not active_branch:
+        output("ERROR: Could not determine the active git branch.", color="red")
+        exit(1)
+
     if active_branch == branch_name:
-        output(f"The active branch '{active_branch}' matches the specified branch '{branch_name}'.", color="green")
-    else:
-        output(f"Processing folder: {folder_path}", color="yellow")
-        diff_result = checkout_and_merge_branch(folder_path, branch_name)
-        output(f"Diff with branch '{branch_name}':\n{diff_result}", color="blue")
+        output(f"ERROR: Active branch and specified branch are the same: {active_branch}", color="red")
+        exit(1)
+
+    output(f"Processing folder: {folder_path}", color="yellow")
+    diff_result = checkout_and_merge_branch(folder_path, branch_name)
+    output(f"Diff with branch '{branch_name}':\n{diff_result}", color="blue")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
