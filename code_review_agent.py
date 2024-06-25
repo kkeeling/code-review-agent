@@ -66,16 +66,14 @@ def main(folder_path, branch_name):
     active_branch = get_active_git_branch(folder_path)
     
     if active_branch:
-        output(f"Active git branch: {active_branch}")
+        output(f"Active git branch: {active_branch}", color="green")
     else:
         output("Could not determine the active git branch.", color="red")
     
     if active_branch == branch_name:
-        output(f"The active branch '{active_branch}' matches the specified branch '{branch_name}'.")
+        output(f"The active branch '{active_branch}' matches the specified branch '{branch_name}'.", color="green")
     else:
-        output(f"The active branch '{active_branch}' does not match the specified branch '{branch_name}'.")
-
-    output(f"Processing folder: {folder_path}")
+      output(f"Processing folder: {folder_path}", color="yellow")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
