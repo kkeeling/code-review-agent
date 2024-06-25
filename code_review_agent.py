@@ -79,17 +79,21 @@ def get_active_git_branch(folder_path):
 
 def run_code_review_agent(git_diff, branch_name):
     # Initialize the Anthropic client
+    output("Initializing the Anthropic client...", color="green")
     client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
     # Load the system prompt
+    output("Loading the system prompt...", color="green")
     system_prompt = "You are a code review agent that reviews code for potential issues."  # fallback system prompt
     with open("system_prompt.md", "r") as file:
         system_prompt = file.read()
 
+    output("Preparing the messages for Claude...", color="green")
     messages = [
         {"role": "user", "content": f"# INPUT\n$> git --no-pager diff {branch_name}\n\n{git_diff}"}
     ]
 
+    output("Sending the diff result to Claude...", color="green")
     response = client.messages.create(
         model="claude-3-5-sonnet-20240620",
         max_tokens=4000,
@@ -98,6 +102,7 @@ def run_code_review_agent(git_diff, branch_name):
     )
 
     # Process the response
+    output("Processing the response from Claude...", color="green")
     assistant_response = ""
     for content_block in response.content:
         if content_block.type == "text":
