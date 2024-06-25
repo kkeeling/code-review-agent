@@ -52,30 +52,30 @@ def get_active_git_branch(folder_path):
 
 def main(folder_path, branch_name):
     if not os.path.isdir(folder_path):
-        print(f"The provided path '{folder_path}' is not a valid directory.")
+        output(f"The provided path '{folder_path}' is not a valid directory.", color="red")
         return
 
     if not is_git_repository(folder_path):
-        print(f"The provided path '{folder_path}' is not a git repository.")
+        output(f"The provided path '{folder_path}' is not a git repository.", color="red")
         return
     
     if not branch_exists(folder_path, branch_name):
-        print(f"The branch '{branch_name}' does not exist in the repository.")
+        output(f"The branch '{branch_name}' does not exist in the repository.", color="red")
         return
 
     active_branch = get_active_git_branch(folder_path)
     
     if active_branch:
-        print(f"Active git branch: {active_branch}")
+        output(f"Active git branch: {active_branch}")
     else:
-        print("Could not determine the active git branch.")
+        output("Could not determine the active git branch.", color="red")
     
     if active_branch == branch_name:
-        print(f"The active branch '{active_branch}' matches the specified branch '{branch_name}'.")
+        output(f"The active branch '{active_branch}' matches the specified branch '{branch_name}'.")
     else:
-        print(f"The active branch '{active_branch}' does not match the specified branch '{branch_name}'.")
+        output(f"The active branch '{active_branch}' does not match the specified branch '{branch_name}'.")
 
-    print(f"Processing folder: {folder_path}")
+    output(f"Processing folder: {folder_path}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
