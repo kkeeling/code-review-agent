@@ -22,7 +22,7 @@ def get_active_git_branch(folder_path):
         print(f"Error detecting git branch: {e}")
         return None
 
-def main(folder_path):
+def main(folder_path, branch_name):
     if not os.path.isdir(folder_path):
         print(f"The provided path '{folder_path}' is not a valid directory.")
         return
@@ -37,10 +37,15 @@ def main(folder_path):
     else:
         print("Could not determine the active git branch.")
     
+    if active_branch == branch_name:
+        print(f"The active branch '{active_branch}' matches the specified branch '{branch_name}'.")
+    else:
+        print(f"The active branch '{active_branch}' does not match the specified branch '{branch_name}'.")
+
     print(f"Processing folder: {folder_path}")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python code_review_agent.py <folder_path>")
+    if len(sys.argv) != 3:
+        print("Usage: python code_review_agent.py <folder_path> <branch_name>")
     else:
-        main(sys.argv[1])
+        main(sys.argv[1], sys.argv[2])
