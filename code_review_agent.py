@@ -106,7 +106,7 @@ def main(folder_path, branch_name):
     output(f"Processing folder: {folder_path}", color="yellow")
     diff_result = checkout_and_merge_branch(folder_path, branch_name, active_branch)
 
-def send_to_claude(diff_result):
+def send_to_claude(anthropic_client, diff_result):
     # Assuming you have a function to send data to Claude
     # Replace this with actual implementation to send data to Claude
     response = anthropic_client.completions.create(
@@ -117,7 +117,7 @@ def send_to_claude(diff_result):
     return response
 
     if diff_result:
-        response = send_to_claude(diff_result)
+        response = send_to_claude(anthropic_client, diff_result)
         output(f"Response from Claude: {response}", color="green")
     else:
         output("No diff result to send to Claude.", color="red")
