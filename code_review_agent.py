@@ -97,7 +97,14 @@ def run_code_review_agent(git_diff, branch_name):
         messages=messages
     )
 
-    output(f"Response from Claude:\n\n{response}", color="green")
+    # Process the response
+    assistant_response = ""
+    for content_block in response.content:
+        if content_block.type == "text":
+            assistant_response += content_block.text
+            output(f"\n{content_block.text}", color="blue")
+    
+    return assistant_response
 
 def main(folder_path, branch_name):
     # check if ANTHROPIC_API_KEY is set
