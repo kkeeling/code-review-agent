@@ -83,9 +83,9 @@ END EXAMPLES
    - A reasoning for the score.
 5. Ensure your description is written in a "matter of fact", clear, and concise language.
 6. Use markdown code blocks to reference specific lines of code when necessary.
-7. Considering best practices, potential bugs, and overall code quality, analyze the code in each file to identify any critical issues or bugs with the code. Any issue that is not a bug is considered a minor issue. Any issue related to backwards compatibility is considered a critical issue. Any issue related to code maintainability is considered a minor issue. Any issue related to security is considered a critical issue. Any issue related to performance is considered a minor issue. Any issue related to code style is considered a minor issue. Any issue related to compatibility with other systems or software is considered a minor issue. Any issue related to testing or the need for testing should not be reported.
+7. Considering best practices, potential bugs, and overall code quality, analyze the code in each file to identify any critical issues or bugs with the code. If the code changes refer to an api, you should check for any issues with backwards compatibility, otherwise do not consider backwards compatibility issues. Any issue that is not a bug is considered a minor issue. Any issue related to code maintainability is considered a minor issue. Any issue related to security is considered a critical issue. Any issue related to performance is considered a minor issue. Any issue related to code style is considered a minor issue. Any issue related to compatibility with other systems or software is considered a minor issue. Any issue related to testing or the need for testing should not be reported.
 8. Go through each issue you identified. For each issue:
-   - Rate the issue on a scale of 1-10, where 1 is the most severe and 10 is the least severe
+   - Rate the issue on a scale of 1-10, where 1 is the most severe and 10 is the least severe. Minor issues should be rated 6 or higher, major issues should be rated between 3 and 5, and critical issues should be rated 1 or 2.
    - Describe the issue
    - Explain why it is a problem
    - Suggest how to improve or resolve the issue
@@ -108,7 +108,7 @@ END EXAMPLES
 
 1. **Summary**: Start with a brief summary of the changes made. This should be a concise explanation of the overall changes.
 
-2.  **Issues (1-10, 1 is the most severe and 10 is the least severe)**: Output the issues with the code changes. If an issue severity is 5 or greater, do not output the issue. If no issues are found, output "No issues found".
+2.  **Issues (1-10, 1 is the most severe and 10 is the least severe)**: Output the issues with the code changes. If an issue severity is 6 or greater, do not output the issue. If no issues are found, output "No issues found".
 
 3.  **Score**: Output the score and reasoning.
 
