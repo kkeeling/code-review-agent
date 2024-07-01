@@ -54,8 +54,14 @@ def get_diff(folder_path, branch_name, active_branch):
         # Merge the branch_name into the active branch
         subprocess.run(["git", "merge", branch_name], cwd=folder_path, check=True)
 
-        # Return the result of "git --no-pager diff branch_name"
-        result = subprocess.run(["git", "--no-pager", "diff", branch_name], cwd=folder_path, check=True, text=True, stdout=subprocess.PIPE)
+        # Return the result of "git --no-pager diff branch_name" excluding package.lock
+        result = subprocess.run(
+            ["git", "--no-pager", "diff", branch_name, ":(exclude)package.lock"],
+            cwd=folder_path,
+            check=True,
+            text=True,
+            stdout=subprocess.PIPE
+        )
         return result.stdout
 
     except subprocess.CalledProcessError as e:
