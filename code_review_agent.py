@@ -78,10 +78,10 @@ def get_active_git_branch(folder_path):
         print(f"Error detecting git branch: {e}")
         return None
 
-def run_code_review_agent(git_diff, branch_name):
+def run_code_review_agent(git_diff, branch_name, api_key):
     # Initialize the Anthropic client
     output("Initializing the Anthropic client...", color="green")
-    client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    client = Anthropic(api_key=api_key)
 
     # Load the system prompt
     output("Loading the system prompt...", color="green")
@@ -113,10 +113,10 @@ def run_code_review_agent(git_diff, branch_name):
     
     return assistant_response
 
-def main(folder_path, branch_name):
-    # check if ANTHROPIC_API_KEY is set
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        output("ERROR: ANTHROPIC_API_KEY is not set.", color="red")
+def main(folder_path, branch_name, api_key):
+    # check if the API key is set
+    if not api_key:
+        output("ERROR: Anthropic API key is not set.", color="red")
         exit(1)
 
     # Check if the provided path is a valid directory
@@ -152,16 +152,17 @@ def main(folder_path, branch_name):
     diff_result = get_diff(folder_path, branch_name, active_branch)
     
     # Run the code review agent
-    run_code_review_agent(diff_result, active_branch)
+    run_code_review_agent(diff_result, active_branch, api_key)
 
 def cli():
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
     parser.add_argument("--folder", default=os.getcwd(), help="Path to the folder (default: current working directory)")
+    parser.add_argument("--api-key", default=os.environ.get("ANTHROPIC_API_KEY"), help="Anthropic API key (default: environment variable ANTHROPIC_API_KEY)")
     parser.add_argument("--branch", default="main", help="Name of the branch to compare against (default: main)")
 
     args = parser.parse_args()
 
-    main(args.folder, args.branch)
+    main(args.folder, args.branch, args.api_key)
 
 if __name__ == "__main__":
     cli()
