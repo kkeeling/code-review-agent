@@ -156,7 +156,7 @@ def main(folder_path, branch_name):
 
 def cli():
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
-    parser.add_argument("--folder", required=True, help="Path to the folder")
+    parser.add_argument("--folder", default=os.getcwd(), help="Path to the folder (default: current working directory)")
     parser.add_argument("--branch", required=True, help="Name of the branch to compare against")
 
     args = parser.parse_args()
