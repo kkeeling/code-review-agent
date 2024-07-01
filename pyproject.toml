@@ -1,5 +1,5 @@
 [project]
-name = "Code Review Agent"
+name = "code-review-agent"
 version = "0.1.0"
 description = "A code review agent that reviews git diffs and provides feedback on the changes to the codebase. The agent will use the Anthropic API to review the changes and provide feedback on the changes to the codebase."
 authors = [{"name" = "Keenan Keeling", "email" = "kkeeling@automatastudios.com"}]
