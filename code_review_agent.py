@@ -113,16 +113,21 @@ def run_code_review_agent(git_diff, branch_name, api_key):
     
     return assistant_response
 
-def main(folder_path, branch_name, api_key):
+def main(folder_path=None, branch_name="main", api_key=None):
     # check if the API key is set
     if not api_key:
         output("ERROR: Anthropic API key is not set.", color="red")
         exit(1)
 
-    # Check if the provided path is a valid directory
-    if not os.path.isdir(folder_path):
-        output(f"ERROR: The provided path '{folder_path}' is not a valid directory.", color="red")
-        exit(1)
+    # Set default folder path if not provided
+    if not folder_path:
+        folder_path = os.getcwd()
+        output(f"No folder path provided. Using current working directory: {folder_path}", color="yellow")
+    else:
+        # Check if the provided path is a valid directory
+        if not os.path.isdir(folder_path):
+            output(f"ERROR: The provided path '{folder_path}' is not a valid directory.", color="red")
+            exit(1)
 
     # Check if the provided path is a git repository
     if not is_git_repository(folder_path):
@@ -130,7 +135,7 @@ def main(folder_path, branch_name, api_key):
         exit(1)
     
     # Check if the specified branch exists in the repository
-    if not branch_exists(folder_path, branch_name):
+    if branch_name and not branch_exists(folder_path, branch_name):
         output(f"ERROR: The branch '{branch_name}' does not exist in the repository.", color="red")
         exit(1)
 
@@ -156,9 +161,9 @@ def main(folder_path, branch_name, api_key):
 
 def cli():
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
-    parser.add_argument("--folder", default=os.getcwd(), help="Path to the folder (default: current working directory)")
+    parser.add_argument("--folder", help="Path to the folder (default: current working directory)")
     parser.add_argument("--api-key", default=os.environ.get("ANTHROPIC_API_KEY"), help="Anthropic API key (default: environment variable ANTHROPIC_API_KEY)")
-    parser.add_argument("--branch", default="main", help="Name of the branch to compare against (default: main)")
+    parser.add_argument("--branch", help="Name of the branch to compare against (default: main)")
 
     args = parser.parse_args()
 
