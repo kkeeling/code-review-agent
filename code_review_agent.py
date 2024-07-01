@@ -154,8 +154,7 @@ def main(folder_path, branch_name):
     # Run the code review agent
     run_code_review_agent(diff_result, active_branch)
 
-
-if __name__ == "__main__":
+def cli():
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
     parser.add_argument("--folder", required=True, help="Path to the folder")
     parser.add_argument("--branch", required=True, help="Name of the branch to compare against")
@@ -163,3 +162,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.folder, args.branch)
+
+if __name__ == "__main__":
+    cli()
