@@ -82,13 +82,6 @@ The Code Review Agent performs the following steps:
 - Git
 - Anthropic API key
 
-The following Python packages are required:
-
-```python:code-review-agent/requirements.txt
-startLine: 1
-endLine: 33
-```
-
 ## Project Structure
 
 The main components of the Code Review Agent are:
