@@ -163,7 +163,7 @@ def cli():
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
     parser.add_argument("--folder", help="Path to the folder (default: current working directory)")
     parser.add_argument("--api-key", default=os.environ.get("ANTHROPIC_API_KEY"), help="Anthropic API key (default: environment variable ANTHROPIC_API_KEY)")
-    parser.add_argument("--branch", help="Name of the branch to compare against (default: main)")
+    parser.add_argument("--branch", default="main", help="Name of the branch to compare against (default: main)")
 
     args = parser.parse_args()
 
