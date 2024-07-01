@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import argparse
+import requests
 from colorama import Fore, Style, init
 from halo import Halo
 from anthropic import Anthropic
@@ -86,8 +87,12 @@ def run_code_review_agent(git_diff, branch_name, api_key):
     # Load the system prompt
     output("Loading the system prompt...", color="green")
     system_prompt = "You are a code review agent that reviews code for potential issues."  # fallback system prompt
-    with open("system_prompt.md", "r") as file:
-        system_prompt = file.read()
+    try:
+        response = requests.get("https://raw.githubusercontent.com/kkeeling/code-review-agent/main/system_prompt.md")
+        response.raise_for_status()
+        system_prompt = response.text
+    except requests.RequestException as e:
+        output(f"Error loading system prompt from remote location: {e}", color="red")
 
     output("Preparing the messages for Claude...", color="green")
     messages = [
