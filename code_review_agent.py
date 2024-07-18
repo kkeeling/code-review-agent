@@ -54,9 +54,9 @@ def get_diff(folder_path, branch_name, active_branch):
         # Merge the branch_name into the active branch
         subprocess.run(["git", "merge", branch_name], cwd=folder_path, check=True)
 
-        # Return the result of "git --no-pager diff branch_name" excluding package-lock
+        # Return the result of "git --no-pager diff branch_name" excluding package-lock.json and yarn.lock
         result = subprocess.run(
-            ["git", "--no-pager", "diff", branch_name, ":(exclude)package-lock.json"],
+            ["git", "--no-pager", "diff", branch_name, "--", ":!package-lock.json", ":!yarn.lock"],
             cwd=folder_path,
             check=True,
             text=True,
