@@ -1,5 +1,5 @@
 import pytest
-from code_review_agent import (
+from src.code_review_agent import (
     output,
     is_git_repository,
     get_changed_files,
@@ -70,8 +70,8 @@ def test_get_active_git_branch_error(mock_subprocess_run, returncode, expected):
     result = get_active_git_branch("/fake/path")
     assert result == expected
 
-@patch('code_review_agent.Anthropic')
-@patch('code_review_agent.requests.get')
+@patch('src.code_review_agent.Anthropic')
+@patch('src.code_review_agent.requests.get')
 def test_run_code_review_agent(mock_requests_get, mock_anthropic, capsys):
     # Mock the API key
     api_key = "fake_api_key"
@@ -139,13 +139,13 @@ def test_process_files(tmp_path):
         str(root / "subdir" / "file3.py")
     }
 
-@patch('code_review_agent.run_code_review_agent')
-@patch('code_review_agent.get_diff')
-@patch('code_review_agent.get_changed_files')
-@patch('code_review_agent.get_active_git_branch')
-@patch('code_review_agent.branch_exists')
-@patch('code_review_agent.is_git_repository')
-@patch('code_review_agent.process_files')
+@patch('src.code_review_agent.run_code_review_agent')
+@patch('src.code_review_agent.get_diff')
+@patch('src.code_review_agent.get_changed_files')
+@patch('src.code_review_agent.get_active_git_branch')
+@patch('src.code_review_agent.branch_exists')
+@patch('src.code_review_agent.is_git_repository')
+@patch('src.code_review_agent.process_files')
 def test_main(mock_process_files, mock_is_git_repo, mock_branch_exists, mock_get_active_branch, 
               mock_get_changed_files, mock_get_diff, mock_run_code_review):
     # Mock the necessary functions
