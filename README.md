@@ -4,6 +4,8 @@ A code review agent that reviews git diffs and provides feedback on changes to t
 
 ## Installation
 
+### Using pipx (recommended for end-users)
+
 To install the Code Review Agent using pipx, follow these steps:
 
 1. Ensure you have pipx installed. If not, install it using:
@@ -19,9 +21,9 @@ To install the Code Review Agent using pipx, follow these steps:
    pipx install git+https://github.com/kkeeling/code-review-agent.git
    ```
 
-## Running Tests
+### For Development
 
-To run the tests for the Code Review Agent, follow these steps:
+If you want to contribute to the project or run the tests, follow these steps:
 
 1. Clone the repository:
 
@@ -30,11 +32,57 @@ To run the tests for the Code Review Agent, follow these steps:
    cd code-review-agent
    ```
 
-2. Install the required dependencies:
+2. Create a virtual environment:
+
+   You can use either venv or conda to create a virtual environment. Choose the method you prefer:
+
+   #### Using venv
+
+   ```bash
+   python3 -m venv venv
+   ```
+
+   #### Using conda
+
+   ```bash
+   conda create --name code-review-agent python=3.9
+   ```
+
+3. Activate the virtual environment:
+
+   #### For venv
+
+   - On macOS and Linux:
+
+     ```bash
+     source venv/bin/activate
+     ```
+
+   - On Windows:
+
+     ```bash
+     venv\Scripts\activate
+     ```
+
+   #### For conda
+
+   ```bash
+   conda activate code-review-agent
+   ```
+
+4. Install the required dependencies:
 
    ```bash
    pip install -r requirements.txt
    ```
+
+## Running Tests
+
+To run the tests for the Code Review Agent, follow these steps:
+
+1. Ensure you have completed the "For Development" installation steps above.
+
+2. Make sure your virtual environment is activated.
 
 3. Run the tests using pytest:
 
