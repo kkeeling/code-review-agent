@@ -4,7 +4,9 @@ from code_review_agent import (
     is_git_repository,
     get_changed_files,
     get_active_git_branch,
-    run_code_review_agent
+    run_code_review_agent,
+    process_files,
+    main
 )
 import os
 import subprocess
@@ -101,6 +103,76 @@ def test_run_code_review_agent(mock_requests_get, mock_anthropic, capsys):
     # Check if the response was processed and output
     captured = capsys.readouterr()
     assert "Mocked assistant response" in captured.out
+
+def test_process_files(tmp_path):
+    # Create a temporary directory structure
+    root = tmp_path / "test_repo"
+    root.mkdir()
+    (root / "file1.py").touch()
+    (root / "file2.txt").touch()
+    (root / ".hidden_file").touch()
+    sub_dir = root / "subdir"
+    sub_dir.mkdir()
+    (sub_dir / "file3.py").touch()
+
+    # Test without any filters
+    result = process_files([str(root)])
+    assert set(result) == {
+        str(root / "file1.py"),
+        str(root / "file2.txt"),
+        str(root / "subdir" / "file3.py")
+    }
+
+    # Test with ignore patterns
+    result = process_files([str(root)], ignore_patterns=["*.txt"])
+    assert set(result) == {
+        str(root / "file1.py"),
+        str(root / "subdir" / "file3.py")
+    }
+
+    # Test with include_hidden
+    result = process_files([str(root)], include_hidden=True)
+    assert set(result) == {
+        str(root / "file1.py"),
+        str(root / "file2.txt"),
+        str(root / ".hidden_file"),
+        str(root / "subdir" / "file3.py")
+    }
+
+@patch('code_review_agent.run_code_review_agent')
+@patch('code_review_agent.get_diff')
+@patch('code_review_agent.get_changed_files')
+@patch('code_review_agent.get_active_git_branch')
+@patch('code_review_agent.branch_exists')
+@patch('code_review_agent.is_git_repository')
+@patch('code_review_agent.process_files')
+def test_main(mock_process_files, mock_is_git_repo, mock_branch_exists, mock_get_active_branch, 
+              mock_get_changed_files, mock_get_diff, mock_run_code_review):
+    # Mock the necessary functions
+    mock_process_files.return_value = ["/path/to/file1.py", "/path/to/file2.py"]
+    mock_is_git_repo.return_value = True
+    mock_branch_exists.return_value = True
+    mock_get_active_branch.return_value = "feature-branch"
+    mock_get_changed_files.return_value = ["file1.py", "file2.py"]
+    mock_get_diff.return_value = "Mocked diff content"
+
+    # Call the main function
+    main(["path/to/repo"], branch_name="main", api_key="fake_api_key")
+
+    # Assert that the functions were called with the correct arguments
+    mock_process_files.assert_called_once_with(["path/to/repo"], None, False)
+    mock_is_git_repo.assert_called_once()
+    mock_branch_exists.assert_called_once()
+    mock_get_active_branch.assert_called_once()
+    mock_get_changed_files.assert_called_once()
+    mock_get_diff.assert_called_once()
+    mock_run_code_review.assert_called_once_with(
+        "Mocked diff content", 
+        ["file1.py", "file2.py"], 
+        "feature-branch", 
+        "fake_api_key",
+        False  # use_cxml
+    )
 
 if __name__ == "__main__":
     pytest.main()

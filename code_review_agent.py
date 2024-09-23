@@ -6,6 +6,7 @@ import requests
 from colorama import Fore, Style, init
 from halo import Halo
 from anthropic import Anthropic
+import fnmatch
 
 # Initialize colorama
 init()
@@ -99,7 +100,7 @@ def get_active_git_branch(folder_path):
         print(f"Error detecting git branch: {e}")
         return None
 
-def run_code_review_agent(git_diff, changed_files, branch_name, api_key):
+def run_code_review_agent(git_diff, changed_files, branch_name, api_key, use_cxml=False):
     # Initialize the Anthropic client
     output("Initializing the Anthropic client...", color="green")
     client = Anthropic(api_key=api_key)
@@ -115,8 +116,16 @@ def run_code_review_agent(git_diff, changed_files, branch_name, api_key):
         output(f"Error loading system prompt from remote location: {e}", color="red")
 
     output("Preparing the messages for Claude...", color="green")
+    if use_cxml:
+        content = f"<documents>\n"
+        for i, file in enumerate(changed_files, 1):
+            content += f"<document index=\"{i}\">\n<source>{file}</source>\n<document_content>\n{git_diff}\n</document_content>\n</document>\n"
+        content += "</documents>"
+    else:
+        content = f"# INPUT\n$> git --no-pager diff {branch_name}\n\n{git_diff}\n\nChanged files:\n{', '.join(changed_files)}"
+
     messages = [
-        {"role": "user", "content": f"# INPUT\n$> git --no-pager diff {branch_name}\n\n{git_diff}\n\nChanged files:\n{', '.join(changed_files)}"}
+        {"role": "user", "content": content}
     ]
 
     output("Sending the diff result to Claude...", color="green")
@@ -138,31 +147,50 @@ def run_code_review_agent(git_diff, changed_files, branch_name, api_key):
     
     return assistant_response
 
-def main(folder_path=None, branch_name="main", api_key=None):
+def process_files(paths, ignore_patterns=None, include_hidden=False):
+    all_files = []
+    for path in paths:
+        if os.path.isfile(path):
+            all_files.append(path)
+        elif os.path.isdir(path):
+            for root, dirs, files in os.walk(path):
+                if not include_hidden:
+                    files = [f for f in files if not f.startswith('.')]
+                    dirs[:] = [d for d in dirs if not d.startswith('.')]
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    if ignore_patterns:
+                        if not any(fnmatch.fnmatch(file_path, pattern) for pattern in ignore_patterns):
+                            all_files.append(file_path)
+                    else:
+                        all_files.append(file_path)
+    return all_files
+
+def main(paths, branch_name="main", api_key=None, ignore_patterns=None, include_hidden=False, use_cxml=False):
     # check if the API key is set
     if not api_key:
         output("ERROR: Anthropic API key is not set.", color="red")
-        exit(1)
+        return
 
-    # Set default folder path if not provided
-    if not folder_path:
-        folder_path = os.getcwd()
-        output(f"No folder path provided. Using current working directory: {folder_path}", color="yellow")
-    else:
-        # Check if the provided path is a valid directory
-        if not os.path.isdir(folder_path):
-            output(f"ERROR: The provided path '{folder_path}' is not a valid directory.", color="red")
-            exit(1)
+    # Process all provided paths
+    all_files = process_files(paths, ignore_patterns, include_hidden)
+
+    if not all_files:
+        output("ERROR: No files found to review.", color="red")
+        return
+
+    # For simplicity, we'll assume the first path is a git repository
+    folder_path = os.path.dirname(all_files[0]) if os.path.isfile(all_files[0]) else all_files[0]
 
     # Check if the provided path is a git repository
     if not is_git_repository(folder_path):
         output(f"ERROR: The provided path '{folder_path}' is not a git repository.", color="red")
-        exit(1)
+        return
     
     # Check if the specified branch exists in the repository
     if branch_name and not branch_exists(folder_path, branch_name):
         output(f"ERROR: The branch '{branch_name}' does not exist in the repository.", color="red")
-        exit(1)
+        return
 
     # Get the active git branch
     active_branch = get_active_git_branch(folder_path)
@@ -170,12 +198,12 @@ def main(folder_path=None, branch_name="main", api_key=None):
     # Check if the active git branch could be determined
     if not active_branch:
         output("ERROR: Could not determine the active git branch.", color="red")
-        exit(1)
+        return
 
     # Check if the active branch and the specified branch are the same
     if active_branch == branch_name:
         output(f"ERROR: Active branch and specified branch are the same: {active_branch}", color="red")
-        exit(1)
+        return
 
     # Get the diff between the active branch and the specified branch
     output(f"Processing folder: {folder_path}", color="yellow")
@@ -186,17 +214,20 @@ def main(folder_path=None, branch_name="main", api_key=None):
     output(f"Changed files: {', '.join(changed_files)}", color="cyan")
 
     # Run the code review agent
-    run_code_review_agent(diff_result, changed_files, active_branch, api_key)
+    run_code_review_agent(diff_result, changed_files, active_branch, api_key, use_cxml)
 
 def cli():
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
-    parser.add_argument("--folder", help="Path to the folder (default: current working directory)")
+    parser.add_argument("paths", nargs='+', help="Paths to files or directories to review")
     parser.add_argument("--api-key", default=os.environ.get("ANTHROPIC_API_KEY"), help="Anthropic API key (default: environment variable ANTHROPIC_API_KEY)")
     parser.add_argument("--branch", default="main", help="Name of the branch to compare against (default: main)")
+    parser.add_argument("--ignore", action='append', help="Patterns to ignore (can be used multiple times)")
+    parser.add_argument("--include-hidden", action='store_true', help="Include hidden files and directories")
+    parser.add_argument("--cxml", action='store_true', help="Output in Claude XML format")
 
     args = parser.parse_args()
 
-    main(args.folder, args.branch, args.api_key)
+    main(args.paths, args.branch, args.api_key, args.ignore, args.include_hidden, args.cxml)
 
 if __name__ == "__main__":
     cli()
