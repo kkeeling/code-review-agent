@@ -30,3 +30,4 @@ tqdm==4.66.4
 typing_extensions==4.12.2
 urllib3==2.2.2
 wheel==0.43.0
+pytest==7.4.4

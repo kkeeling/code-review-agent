@@ -8,16 +8,41 @@ To install the Code Review Agent using pipx, follow these steps:
 
 1. Ensure you have pipx installed. If not, install it using:
 
-   ```
+   ```bash
    python3 -m pip install --user pipx
    python3 -m pipx ensurepath
    ```
 
 2. Install the Code Review Agent:
 
-   ```
+   ```bash
    pipx install git+https://github.com/kkeeling/code-review-agent.git
    ```
+
+## Running Tests
+
+To run the tests for the Code Review Agent, follow these steps:
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/kkeeling/code-review-agent.git
+   cd code-review-agent
+   ```
+
+2. Install the required dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Run the tests using pytest:
+
+   ```bash
+   pytest
+   ```
+
+This will run all the tests in the `test_code_review_agent.py` file and display the results.
 
 ## Usage
 
@@ -25,7 +50,7 @@ To use the Code Review Agent, you need to have an Anthropic API key. You can set
 
 ### Basic Usage
 
-```
+```bash
 code-review-agent [--folder FOLDER] [--branch BRANCH] [--api-key API_KEY]
 ```
 
@@ -37,19 +62,19 @@ code-review-agent [--folder FOLDER] [--branch BRANCH] [--api-key API_KEY]
 
 1. Review changes in the current directory against the main branch:
 
-   ```
+   ```bash
    code-review-agent
    ```
 
 2. Review changes in a specific folder against a different branch:
 
-   ```
+   ```bash
    code-review-agent --folder /path/to/repo --branch develop
    ```
 
 3. Provide the API key as an argument:
 
-   ```
+   ```bash
    code-review-agent --api-key your_api_key_here
    ```
 
@@ -57,7 +82,7 @@ code-review-agent [--folder FOLDER] [--branch BRANCH] [--api-key API_KEY]
 
 It's recommended to set the Anthropic API key as an environment variable:
 
-```
+```bash
 export ANTHROPIC_API_KEY=your_api_key_here
 ```
 
@@ -89,6 +114,8 @@ The main components of the Code Review Agent are:
 1. `code_review_agent.py`: The main script that handles the git operations and interacts with the Anthropic API.
 2. `system_prompt.md`: Contains the system prompt used to guide the AI in performing the code review.
 3. `pyproject.toml`: Defines the project metadata and dependencies.
+4. `test_code_review_agent.py`: Contains unit tests for the Code Review Agent.
+5. `requirements.txt`: Lists all the Python dependencies required for the project.
 
 ## Contributing
 
@@ -99,6 +126,8 @@ Contributions to the Code Review Agent are welcome! Please follow these steps to
 3. Make your changes and commit them with a clear commit message
 4. Push your changes to your fork
 5. Create a pull request with a description of your changes
+
+When contributing, please ensure that you add or update tests as necessary to maintain code coverage.
 
 ## License
 

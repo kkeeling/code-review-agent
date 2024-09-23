@@ -68,6 +68,20 @@ def get_diff(folder_path, branch_name, active_branch):
         output(f"Error during git operations: {e}", color="red")
         return None
 
+def get_changed_files(folder_path, branch_name):
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--name-only", branch_name],
+            cwd=folder_path,
+            check=True,
+            text=True,
+            stdout=subprocess.PIPE
+        )
+        return result.stdout.strip().split('\n')
+    except subprocess.CalledProcessError as e:
+        output(f"Error getting changed files: {e}", color="red")
+        return []
+
 def get_active_git_branch(folder_path):
     try:
         result = subprocess.run(
@@ -85,7 +99,7 @@ def get_active_git_branch(folder_path):
         print(f"Error detecting git branch: {e}")
         return None
 
-def run_code_review_agent(git_diff, branch_name, api_key):
+def run_code_review_agent(git_diff, changed_files, branch_name, api_key):
     # Initialize the Anthropic client
     output("Initializing the Anthropic client...", color="green")
     client = Anthropic(api_key=api_key)
@@ -102,7 +116,7 @@ def run_code_review_agent(git_diff, branch_name, api_key):
 
     output("Preparing the messages for Claude...", color="green")
     messages = [
-        {"role": "user", "content": f"# INPUT\n$> git --no-pager diff {branch_name}\n\n{git_diff}"}
+        {"role": "user", "content": f"# INPUT\n$> git --no-pager diff {branch_name}\n\n{git_diff}\n\nChanged files:\n{', '.join(changed_files)}"}
     ]
 
     output("Sending the diff result to Claude...", color="green")
@@ -167,8 +181,12 @@ def main(folder_path=None, branch_name="main", api_key=None):
     output(f"Processing folder: {folder_path}", color="yellow")
     diff_result = get_diff(folder_path, branch_name, active_branch)
     
+    # Get the list of changed files
+    changed_files = get_changed_files(folder_path, branch_name)
+    output(f"Changed files: {', '.join(changed_files)}", color="cyan")
+
     # Run the code review agent
-    run_code_review_agent(diff_result, active_branch, api_key)
+    run_code_review_agent(diff_result, changed_files, active_branch, api_key)
 
 def cli():
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
