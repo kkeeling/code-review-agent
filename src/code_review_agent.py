@@ -194,10 +194,10 @@ def main(paths, branch_name="main", api_key=None, ignore_patterns=None, include_
     # Merge the branches once
     try:
         output(f"Merging {branch_name} into {active_branch}...", color="cyan")
-        subprocess.run(["git", "checkout", branch_name], cwd=folder_path, check=True)
-        subprocess.run(["git", "pull"], cwd=folder_path, check=True)
-        subprocess.run(["git", "checkout", active_branch], cwd=folder_path, check=True)
-        subprocess.run(["git", "merge", branch_name], cwd=folder_path, check=True)
+        subprocess.run(["git", "checkout", branch_name], cwd=os.path.dirname(folder_path), check=True)
+        subprocess.run(["git", "pull"], cwd=os.path.dirname(folder_path), check=True)
+        subprocess.run(["git", "checkout", active_branch], cwd=os.path.dirname(folder_path), check=True)
+        subprocess.run(["git", "merge", branch_name], cwd=os.path.dirname(folder_path), check=True)
     except subprocess.CalledProcessError as e:
         output(f"Error during git merge: {e}", color="red")
         return

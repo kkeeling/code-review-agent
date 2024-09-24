@@ -154,15 +154,17 @@ def test_process_files(tmp_path):
 @patch('src.code_review_agent.branch_exists')
 @patch('src.code_review_agent.is_git_repository')
 @patch('src.code_review_agent.process_files')
-def test_main(mock_process_files, mock_is_git_repo, mock_branch_exists, mock_get_active_branch, 
+@patch('subprocess.run')
+def test_main(mock_subprocess_run, mock_process_files, mock_is_git_repo, mock_branch_exists, mock_get_active_branch, 
               mock_get_changed_files, mock_get_diff, mock_run_code_review):
     # Mock the necessary functions
-    mock_process_files.return_value = ["/path/to/file1.py", "/path/to/file2.py"]
+    mock_process_files.return_value = ["/path/to/repo/file1.py", "/path/to/repo/file2.py"]
     mock_is_git_repo.return_value = True
     mock_branch_exists.return_value = True
     mock_get_active_branch.return_value = "feature-branch"
     mock_get_changed_files.return_value = ["file1.py", "file2.py"]
     mock_get_diff.return_value = "Mocked diff content"
+    mock_subprocess_run.return_value.returncode = 0
 
     # Call the main function
     main(["path/to/repo"], branch_name="main", api_key="fake_api_key")
@@ -179,6 +181,12 @@ def test_main(mock_process_files, mock_is_git_repo, mock_branch_exists, mock_get
         call("Mocked diff content", "file1.py", "feature-branch", "fake_api_key", False),
         call("Mocked diff content", "file2.py", "feature-branch", "fake_api_key", False)
     ], any_order=True)
+    
+    # Assert that subprocess.run was called for git commands
+    mock_subprocess_run.assert_any_call(["git", "checkout", "main"], cwd="/path/to/repo", check=True)
+    mock_subprocess_run.assert_any_call(["git", "pull"], cwd="/path/to/repo", check=True)
+    mock_subprocess_run.assert_any_call(["git", "checkout", "feature-branch"], cwd="/path/to/repo", check=True)
+    mock_subprocess_run.assert_any_call(["git", "merge", "main"], cwd="/path/to/repo", check=True)
 
 if __name__ == "__main__":
     pytest.main()
