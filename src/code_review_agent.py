@@ -209,7 +209,8 @@ def main(paths, branch_name="main", api_key=None, ignore_patterns=None, include_
     # Run the code review agent for each changed file
     for file_path in changed_files:
         output(f"\nReviewing file: {file_path}", color="yellow")
-        diff_result = get_diff(folder_path, branch_name, file_path)
+        full_file_path = os.path.join(folder_path, file_path)
+        diff_result = get_diff(full_file_path, branch_name, file_path)
         review_result = run_code_review_agent(diff_result, file_path, active_branch, api_key, use_cxml)
         output(f"Review for {file_path}:", color="green")
         output(review_result, color="blue")
