@@ -26,7 +26,12 @@ def output(text, color="default"):
     print(f"{color_code}{text}{Style.RESET_ALL}")
 
 def is_git_repository(folder_path):
-    return os.path.isdir(os.path.join(folder_path, '.git'))
+    current_path = os.path.abspath(folder_path)
+    while current_path != os.path.dirname(current_path):  # Stop at the root directory
+        if os.path.isdir(os.path.join(current_path, '.git')):
+            return True, current_path
+        current_path = os.path.dirname(current_path)
+    return False, None
 
 def branch_exists(folder_path, branch_name):
     try:
@@ -170,9 +175,11 @@ def main(paths, branch_name="main", api_key=None, ignore_patterns=None, include_
     folder_path = os.path.dirname(folder_path)  # Get the parent directory
 
     # Check if the provided path is a git repository
-    if not is_git_repository(folder_path):
-        output(f"ERROR: The provided path '{folder_path}' is not a git repository.", color="red")
+    is_git_repo, repo_root = is_git_repository(folder_path)
+    if not is_git_repo:
+        output(f"ERROR: No git repository found in '{folder_path}' or its parent directories.", color="red")
         return
+    folder_path = repo_root
     
     # Check if the specified branch exists in the repository
     if branch_name and not branch_exists(folder_path, branch_name):
