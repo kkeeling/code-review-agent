@@ -170,9 +170,8 @@ def main(paths, branch_name="main", api_key=None, ignore_patterns=None, include_
         output("ERROR: No files found to review.", color="red")
         return
 
-    # For simplicity, we'll assume the first path is a git repository
-    folder_path = os.path.dirname(all_files[0]) if os.path.isfile(all_files[0]) else all_files[0]
-    folder_path = os.path.dirname(folder_path)  # Get the parent directory
+    # Use the first path as the repository root
+    folder_path = paths[0] if os.path.isdir(paths[0]) else os.path.dirname(paths[0])
 
     # Check if the provided path is a git repository
     is_git_repo, repo_root = is_git_repository(folder_path)
