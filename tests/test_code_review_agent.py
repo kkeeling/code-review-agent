@@ -10,7 +10,7 @@ from src.code_review_agent import (
 )
 import os
 import subprocess
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 
 def test_output(capsys):
     output("Test message", color="red")
