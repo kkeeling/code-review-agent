@@ -175,4 +175,111 @@ def test_main(mock_process_files, mock_is_git_repo, mock_branch_exists, mock_get
     )
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main()import os
+import pytest
+from unittest.mock import patch, MagicMock
+from src.code_review_agent import (
+    is_git_repository,
+    branch_exists,
+    get_diff,
+    get_changed_files,
+    get_active_git_branch,
+    run_code_review_agent,
+    process_files,
+)
+
+@pytest.fixture
+def mock_subprocess_run():
+    with patch('subprocess.run') as mock_run:
+        yield mock_run
+
+def test_is_git_repository():
+    with patch('os.path.isdir') as mock_isdir:
+        mock_isdir.return_value = True
+        assert is_git_repository('/path/to/repo') == True
+        mock_isdir.assert_called_once_with('/path/to/repo/.git')
+
+        mock_isdir.return_value = False
+        assert is_git_repository('/path/to/not_repo') == False
+
+def test_branch_exists(mock_subprocess_run):
+    mock_subprocess_run.return_value.returncode = 0
+    assert branch_exists('/path/to/repo', 'main') == True
+    mock_subprocess_run.assert_called_once_with(
+        ["git", "show-ref", "--verify", "--quiet", "refs/heads/main"],
+        cwd='/path/to/repo',
+        stdout=-1,
+        stderr=-1
+    )
+
+    mock_subprocess_run.return_value.returncode = 1
+    assert branch_exists('/path/to/repo', 'non_existent') == False
+
+def test_get_diff(mock_subprocess_run):
+    mock_subprocess_run.return_value.stdout = "mock diff output"
+    result = get_diff('/path/to/repo', 'main', 'feature_branch', 'file.py')
+    assert result == "mock diff output"
+    assert mock_subprocess_run.call_count == 5  # 4 git operations + 1 diff
+
+def test_get_changed_files(mock_subprocess_run):
+    mock_subprocess_run.return_value.stdout = "file1.py\nfile2.py\n"
+    result = get_changed_files('/path/to/repo', 'main')
+    assert result == ['file1.py', 'file2.py']
+    mock_subprocess_run.assert_called_once_with(
+        ["git", "diff", "--name-only", "main"],
+        cwd='/path/to/repo',
+        check=True,
+        text=True,
+        stdout=-1
+    )
+
+def test_get_active_git_branch(mock_subprocess_run):
+    mock_subprocess_run.return_value.stdout = "feature_branch\n"
+    mock_subprocess_run.return_value.returncode = 0
+    result = get_active_git_branch('/path/to/repo')
+    assert result == "feature_branch"
+    mock_subprocess_run.assert_called_once_with(
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        cwd='/path/to/repo',
+        stdout=-1,
+        stderr=-1,
+        text=True
+    )
+
+@patch('anthropic.Anthropic')
+@patch('requests.get')
+def test_run_code_review_agent(mock_requests_get, mock_anthropic):
+    mock_requests_get.return_value.text = "<system>Test system prompt</system>"
+    mock_anthropic.return_value.messages.create.return_value.content = [
+        MagicMock(type="text", text="Mock review result")
+    ]
+
+    result = run_code_review_agent('file.py', 'mock diff', 'main', 'mock_api_key')
+    assert result == "Mock review result"
+
+def test_process_files():
+    with patch('os.walk') as mock_walk:
+        mock_walk.return_value = [
+            ('/path/to/repo', ['dir1', '.hidden_dir'], ['file1.py', '.hidden_file', 'file2.py']),
+            ('/path/to/repo/dir1', [], ['file3.py', 'file4.py']),
+        ]
+
+        result = process_files(['/path/to/repo'])
+        assert result == [
+            '/path/to/repo/file1.py',
+            '/path/to/repo/file2.py',
+            '/path/to/repo/dir1/file3.py',
+            '/path/to/repo/dir1/file4.py',
+        ]
+
+        result_with_hidden = process_files(['/path/to/repo'], include_hidden=True)
+        assert result_with_hidden == [
+            '/path/to/repo/file1.py',
+            '/path/to/repo/.hidden_file',
+            '/path/to/repo/file2.py',
+            '/path/to/repo/dir1/file3.py',
+            '/path/to/repo/dir1/file4.py',
+        ]
+
+        result_with_ignore = process_files(['/path/to/repo'], ignore_patterns=['*.py'])
+        assert result_with_ignore == []
