@@ -22,13 +22,17 @@ def test_is_git_repository(tmp_path):
     # Create a temporary directory
     non_git_dir = tmp_path / "non_git"
     non_git_dir.mkdir()
-    assert not is_git_repository(str(non_git_dir))
+    is_git, repo_root = is_git_repository(str(non_git_dir))
+    assert not is_git
+    assert repo_root is None
 
     # Create a .git directory to simulate a git repository
     git_dir = tmp_path / "git_repo"
     git_dir.mkdir()
     (git_dir / ".git").mkdir()
-    assert is_git_repository(str(git_dir))
+    is_git, repo_root = is_git_repository(str(git_dir))
+    assert is_git
+    assert repo_root == str(git_dir)
 
 @pytest.fixture
 def mock_subprocess_run():
