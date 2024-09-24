@@ -5,7 +5,7 @@
 > When writing code, follow these conventions.
 
 - Write simple, verbose code over terse, compact, dense code.
-- Write tests for all functions.
+- Write unit tests for all functions.
 
 ## Project Structure
 
