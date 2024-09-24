@@ -103,13 +103,13 @@ def test_run_code_review_agent(mock_requests_get, mock_anthropic, capsys):
     # Check if the run_code_review_agent function was called with the correct arguments
     mock_client.messages.create.assert_called_once()
     mock_client.messages.create.assert_called_with(
-        model="claude-3-opus-20240229",
-        max_tokens=4096,
+        model="claude-3-5-sonnet-20240620",
+        max_tokens=4000,
         messages=[{
             'role': 'user',
-            'content': mock_ANY  # We can't predict the exact content, so we use mock_ANY
+            'content': "# INPUT\n$> git --no-pager diff main file1.py\n\ngit diff content\n\nFile being reviewed: file1.py"
         }],
-        system=mock_ANY  # The system prompt is mocked, so we use mock_ANY
+        system="Mocked system prompt"
     )
 
 def test_process_files(tmp_path):
