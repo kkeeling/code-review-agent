@@ -10,7 +10,7 @@ from src.code_review_agent import (
 )
 import os
 import subprocess
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock, call, ANY as mock_ANY
 
 def test_output(capsys):
     output("Test message", color="red")
@@ -107,9 +107,9 @@ def test_run_code_review_agent(mock_requests_get, mock_anthropic, capsys):
         max_tokens=4096,
         messages=[{
             'role': 'user',
-            'content': mock.ANY  # We can't predict the exact content, so we use mock.ANY
+            'content': mock_ANY  # We can't predict the exact content, so we use mock_ANY
         }],
-        system=mock.ANY  # The system prompt is mocked, so we use mock.ANY
+        system=mock_ANY  # The system prompt is mocked, so we use mock_ANY
     )
 
 def test_process_files(tmp_path):
