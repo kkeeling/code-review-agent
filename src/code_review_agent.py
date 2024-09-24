@@ -149,7 +149,7 @@ def process_files(paths, ignore_patterns=None, include_hidden=False):
                     files = [f for f in files if not f.startswith('.')]
                     dirs[:] = [d for d in dirs if not d.startswith('.')]
                 for file in files:
-                    file_path = os.path.join(root, file)
+                    file_path = os.path.abspath(os.path.join(root, file))
                     if ignore_patterns:
                         if not any(fnmatch.fnmatch(file_path, pattern) for pattern in ignore_patterns):
                             all_files.append(file_path)
@@ -171,7 +171,7 @@ def main(paths, branch_name="main", api_key=None, ignore_patterns=None, include_
         return
 
     # Use the first path as the repository root
-    folder_path = paths[0] if os.path.isdir(paths[0]) else os.path.dirname(paths[0])
+    folder_path = os.path.abspath(paths[0])
 
     # Check if the provided path is a git repository
     is_git_repo, repo_root = is_git_repository(folder_path)
