@@ -89,7 +89,7 @@ def test_run_code_review_agent(mock_requests_get, mock_anthropic, capsys):
     mock_client.messages.create.return_value = mock_message
 
     # Call the function
-    run_code_review_agent("git diff content", ["file1.py", "file2.py"], "main", api_key)
+    run_code_review_agent("git diff content", "file1.py", "main", api_key)
 
     # Check if Anthropic client was initialized with the correct API key
     mock_anthropic.assert_called_once_with(api_key=api_key)
@@ -98,7 +98,7 @@ def test_run_code_review_agent(mock_requests_get, mock_anthropic, capsys):
     mock_client.messages.create.assert_called_once()
     call_kwargs = mock_client.messages.create.call_args[1]
     assert "git diff content" in call_kwargs['messages'][0]['content']
-    assert "file1.py, file2.py" in call_kwargs['messages'][0]['content']
+    assert "file1.py" in call_kwargs['messages'][0]['content']
 
     # Check if the response was processed and output
     captured = capsys.readouterr()
@@ -165,14 +165,11 @@ def test_main(mock_process_files, mock_is_git_repo, mock_branch_exists, mock_get
     mock_branch_exists.assert_called_once()
     mock_get_active_branch.assert_called_once()
     mock_get_changed_files.assert_called_once()
-    mock_get_diff.assert_called_once()
-    mock_run_code_review.assert_called_once_with(
-        "Mocked diff content", 
-        ["file1.py", "file2.py"], 
-        "feature-branch", 
-        "fake_api_key",
-        False  # use_cxml
-    )
+    assert mock_get_diff.call_count == 2
+    mock_run_code_review.assert_has_calls([
+        call("Mocked diff content", "file1.py", "feature-branch", "fake_api_key", False),
+        call("Mocked diff content", "file2.py", "feature-branch", "fake_api_key", False)
+    ])
 
 if __name__ == "__main__":
     pytest.main()

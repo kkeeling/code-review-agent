@@ -107,7 +107,7 @@ def get_active_git_branch(folder_path):
         print(f"Error detecting git branch: {e}")
         return None
 
-def run_code_review_agent(file_path, git_diff, branch_name, api_key, use_cxml=False):
+def run_code_review_agent(git_diff, file_path, branch_name, api_key, use_cxml=False):
     # Initialize the Anthropic client
     client = Anthropic(api_key=api_key)
 
@@ -211,7 +211,7 @@ def main(paths, branch_name="main", api_key=None, ignore_patterns=None, include_
     for file_path in changed_files:
         output(f"\nReviewing file: {file_path}", color="yellow")
         diff_result = get_diff(folder_path, branch_name, active_branch, file_path)
-        review_result = run_code_review_agent(file_path, diff_result, active_branch, api_key, use_cxml)
+        review_result = run_code_review_agent(diff_result, file_path, active_branch, api_key, use_cxml)
         output(f"Review for {file_path}:", color="green")
         output(review_result, color="blue")
 
