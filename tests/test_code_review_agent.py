@@ -176,6 +176,10 @@ def test_main(mock_subprocess_run, mock_process_files, mock_is_git_repo, mock_br
     mock_get_active_branch.assert_called_once()
     mock_get_changed_files.assert_called_once()
     assert mock_get_diff.call_count == 2
+    mock_get_diff.assert_has_calls([
+        call(os.path.dirname("/path/to/repo"), "main", "file1.py"),
+        call(os.path.dirname("/path/to/repo"), "main", "file2.py")
+    ])
     assert mock_run_code_review.call_count == 2
     mock_run_code_review.assert_has_calls([
         call("Mocked diff content", "file1.py", "feature-branch", "fake_api_key", False),
