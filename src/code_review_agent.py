@@ -41,7 +41,7 @@ def branch_exists(folder_path, branch_name):
         print(f"Error checking if branch exists: {e}")
         return False
 
-def get_diff(folder_path, branch_name, active_branch):
+def get_diff(folder_path, branch_name, active_branch, file_path=None):
     try:
         # Checkout the branch_name (ex. main)
         subprocess.run(["git", "checkout", branch_name], cwd=folder_path, check=True)
@@ -55,9 +55,16 @@ def get_diff(folder_path, branch_name, active_branch):
         # Merge the branch_name into the active branch
         subprocess.run(["git", "merge", branch_name], cwd=folder_path, check=True)
 
-        # Return the result of "git --no-pager diff branch_name" excluding package-lock.json and yarn.lock
+        # Prepare the git diff command
+        git_diff_command = ["git", "--no-pager", "diff", branch_name]
+        if file_path:
+            git_diff_command.extend(["--", file_path])
+        else:
+            git_diff_command.extend(["--", ":!package-lock.json", ":!yarn.lock"])
+
+        # Run the git diff command
         result = subprocess.run(
-            ["git", "--no-pager", "diff", branch_name, "--", ":!package-lock.json", ":!yarn.lock"],
+            git_diff_command,
             cwd=folder_path,
             check=True,
             text=True,
@@ -100,13 +107,11 @@ def get_active_git_branch(folder_path):
         print(f"Error detecting git branch: {e}")
         return None
 
-def run_code_review_agent(git_diff, changed_files, branch_name, api_key, use_cxml=False):
+def run_code_review_agent(file_path, git_diff, branch_name, api_key, use_cxml=False):
     # Initialize the Anthropic client
-    output("Initializing the Anthropic client...", color="green")
     client = Anthropic(api_key=api_key)
 
     # Load the system prompt
-    output("Loading the system prompt...", color="green")
     system_prompt = "You are a code review agent that reviews code for potential issues."  # fallback system prompt
     try:
         response = requests.get("https://raw.githubusercontent.com/kkeeling/code-review-agent/refs/heads/main/src/system_prompt.xml")
@@ -115,21 +120,16 @@ def run_code_review_agent(git_diff, changed_files, branch_name, api_key, use_cxm
     except requests.RequestException as e:
         output(f"Error loading system prompt from remote location: {e}", color="red")
 
-    output("Preparing the messages for Claude...", color="green")
     if use_cxml:
-        content = f"<documents>\n"
-        for i, file in enumerate(changed_files, 1):
-            content += f"<document index=\"{i}\">\n<source>{file}</source>\n<document_content>\n{git_diff}\n</document_content>\n</document>\n"
-        content += "</documents>"
+        content = f"<documents>\n<document index=\"1\">\n<source>{file_path}</source>\n<document_content>\n{git_diff}\n</document_content>\n</document>\n</documents>"
     else:
-        content = f"# INPUT\n$> git --no-pager diff {branch_name}\n\n{git_diff}\n\nChanged files:\n{', '.join(changed_files)}"
+        content = f"# INPUT\n$> git --no-pager diff {branch_name} {file_path}\n\n{git_diff}\n\nFile being reviewed: {file_path}"
 
     messages = [
         {"role": "user", "content": content}
     ]
 
-    output("Sending the diff result to Claude...", color="green")
-    with Halo(text='Waiting for Claude to respond...', spinner='dots'):
+    with Halo(text=f'Reviewing {file_path}...', spinner='dots'):
         response = client.messages.create(
             model="claude-3-5-sonnet-20240620",
             max_tokens=4000,
@@ -138,13 +138,11 @@ def run_code_review_agent(git_diff, changed_files, branch_name, api_key, use_cxm
         )
 
     # Process the response
-    output("Processing the response from Claude...", color="green")
     assistant_response = ""
     for content_block in response.content:
         if content_block.type == "text":
             assistant_response += content_block.text
-            output(f"\n{content_block.text}", color="blue")
-    
+
     return assistant_response
 
 def process_files(paths, ignore_patterns=None, include_hidden=False):
@@ -205,16 +203,17 @@ def main(paths, branch_name="main", api_key=None, ignore_patterns=None, include_
         output(f"ERROR: Active branch and specified branch are the same: {active_branch}", color="red")
         return
 
-    # Get the diff between the active branch and the specified branch
-    output(f"Processing folder: {folder_path}", color="yellow")
-    diff_result = get_diff(folder_path, branch_name, active_branch)
-    
     # Get the list of changed files
     changed_files = get_changed_files(folder_path, branch_name)
     output(f"Changed files: {', '.join(changed_files)}", color="cyan")
 
-    # Run the code review agent
-    run_code_review_agent(diff_result, changed_files, active_branch, api_key, use_cxml)
+    # Run the code review agent for each changed file
+    for file_path in changed_files:
+        output(f"\nReviewing file: {file_path}", color="yellow")
+        diff_result = get_diff(folder_path, branch_name, active_branch, file_path)
+        review_result = run_code_review_agent(file_path, diff_result, active_branch, api_key, use_cxml)
+        output(f"Review for {file_path}:", color="green")
+        output(review_result, color="blue")
 
 def cli():
     parser = argparse.ArgumentParser(description="Process a git repository folder.")
