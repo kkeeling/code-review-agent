@@ -41,20 +41,8 @@ def branch_exists(folder_path, branch_name):
         print(f"Error checking if branch exists: {e}")
         return False
 
-def get_diff(folder_path, branch_name, active_branch, file_path=None):
+def get_diff(folder_path, branch_name, file_path=None):
     try:
-        # Checkout the branch_name (ex. main)
-        subprocess.run(["git", "checkout", branch_name], cwd=folder_path, check=True)
-
-        # Perform a git pull
-        subprocess.run(["git", "pull"], cwd=folder_path, check=True)
-
-        # Checkout the active branch again (your branch)
-        subprocess.run(["git", "checkout", active_branch], cwd=folder_path, check=True)
-
-        # Merge the branch_name into the active branch
-        subprocess.run(["git", "merge", branch_name], cwd=folder_path, check=True)
-
         # Prepare the git diff command
         git_diff_command = ["git", "--no-pager", "diff", branch_name]
         if file_path:
@@ -73,7 +61,7 @@ def get_diff(folder_path, branch_name, active_branch, file_path=None):
         return result.stdout
 
     except subprocess.CalledProcessError as e:
-        output(f"Error during git operations: {e}", color="red")
+        output(f"Error during git diff: {e}", color="red")
         return None
 
 def get_changed_files(folder_path, branch_name):
@@ -203,6 +191,17 @@ def main(paths, branch_name="main", api_key=None, ignore_patterns=None, include_
         output(f"ERROR: Active branch and specified branch are the same: {active_branch}", color="red")
         return
 
+    # Merge the branches once
+    try:
+        output(f"Merging {branch_name} into {active_branch}...", color="cyan")
+        subprocess.run(["git", "checkout", branch_name], cwd=folder_path, check=True)
+        subprocess.run(["git", "pull"], cwd=folder_path, check=True)
+        subprocess.run(["git", "checkout", active_branch], cwd=folder_path, check=True)
+        subprocess.run(["git", "merge", branch_name], cwd=folder_path, check=True)
+    except subprocess.CalledProcessError as e:
+        output(f"Error during git merge: {e}", color="red")
+        return
+
     # Get the list of changed files
     changed_files = get_changed_files(folder_path, branch_name)
     output(f"Changed files: {', '.join(changed_files)}", color="cyan")
@@ -210,7 +209,13 @@ def main(paths, branch_name="main", api_key=None, ignore_patterns=None, include_
     # Run the code review agent for each changed file
     for file_path in changed_files:
         output(f"\nReviewing file: {file_path}", color="yellow")
-        diff_result = get_diff(folder_path, branch_name, active_branch, file_path)
+        diff_result = subprocess.run(
+            ["git", "--no-pager", "diff", branch_name, "--", file_path],
+            cwd=folder_path,
+            check=True,
+            text=True,
+            stdout=subprocess.PIPE
+        ).stdout
         review_result = run_code_review_agent(diff_result, file_path, active_branch, api_key, use_cxml)
         output(f"Review for {file_path}:", color="green")
         output(review_result, color="blue")
