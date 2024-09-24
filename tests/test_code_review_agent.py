@@ -163,7 +163,7 @@ def test_main(mock_subprocess_run, mock_process_files, mock_is_git_repo, mock_br
               mock_get_changed_files, mock_get_diff, mock_run_code_review):
     # Mock the necessary functions
     mock_process_files.return_value = ["/path/to/repo/file1.py", "/path/to/repo/file2.py"]
-    mock_is_git_repo.return_value = True
+    mock_is_git_repo.return_value = (True, "/path/to/repo")
     mock_branch_exists.return_value = True
     mock_get_active_branch.return_value = "feature-branch"
     mock_get_changed_files.return_value = ["file1.py", "file2.py"]
