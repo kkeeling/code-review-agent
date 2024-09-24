@@ -46,7 +46,7 @@ def get_diff(folder_path, branch_name, file_path=None):
         # Prepare the git diff command
         git_diff_command = ["git", "--no-pager", "diff", branch_name]
         if file_path:
-            git_diff_command.extend(["--", file_path])
+            git_diff_command.extend(["--", os.path.join(folder_path, file_path)])
         else:
             git_diff_command.extend(["--", ":!package-lock.json", ":!yarn.lock"])
 
@@ -167,6 +167,7 @@ def main(paths, branch_name="main", api_key=None, ignore_patterns=None, include_
 
     # For simplicity, we'll assume the first path is a git repository
     folder_path = os.path.dirname(all_files[0]) if os.path.isfile(all_files[0]) else all_files[0]
+    folder_path = os.path.dirname(folder_path)  # Get the parent directory
 
     # Check if the provided path is a git repository
     if not is_git_repository(folder_path):
@@ -209,7 +210,7 @@ def main(paths, branch_name="main", api_key=None, ignore_patterns=None, include_
     # Run the code review agent for each changed file
     for file_path in changed_files:
         output(f"\nReviewing file: {file_path}", color="yellow")
-        diff_result = get_diff(folder_path, branch_name, file_path)  
+        diff_result = get_diff(folder_path, branch_name, os.path.basename(file_path))
         review_result = run_code_review_agent(diff_result, file_path, active_branch, api_key, use_cxml)
         output(f"Review for {file_path}:", color="green")
         output(review_result, color="blue")
