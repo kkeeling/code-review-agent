@@ -109,7 +109,7 @@ def run_code_review_agent(git_diff, changed_files, branch_name, api_key, use_cxm
     output("Loading the system prompt...", color="green")
     system_prompt = "You are a code review agent that reviews code for potential issues."  # fallback system prompt
     try:
-        response = requests.get("https://raw.githubusercontent.com/kkeeling/code-review-agent/main/system_prompt.md")
+        response = requests.get("https://raw.githubusercontent.com/kkeeling/code-review-agent/refs/heads/main/src/system_prompt.md")
         response.raise_for_status()
         system_prompt = response.text
     except requests.RequestException as e:
