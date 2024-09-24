@@ -1,6 +1,6 @@
 # Code Review Agent
 
-A code review agent that reviews git diffs and provides feedback on changes to the codebase using the Anthropic API.
+A code review agent that reviews git diffs and provides feedback on changes to the codebase using the Anthropic API. This tool now supports reviewing multiple files or directories, ignoring specific patterns, and including hidden files.
 
 ## Installation
 
@@ -99,31 +99,40 @@ To use the Code Review Agent, you need to have an Anthropic API key. You can set
 ### Basic Usage
 
 ```bash
-code-review-agent [--folder FOLDER] [--branch BRANCH] [--api-key API_KEY]
+code-review-agent [PATHS...] [--branch BRANCH] [--api-key API_KEY] [--ignore PATTERN] [--include-hidden] [--cxml]
 ```
 
-- `--folder`: Path to the git repository folder (default: current working directory)
+- `PATHS`: One or more paths to files or directories to review (required)
 - `--branch`: Name of the branch to compare against (default: main)
 - `--api-key`: Anthropic API key (default: environment variable ANTHROPIC_API_KEY)
+- `--ignore`: Patterns to ignore (can be used multiple times)
+- `--include-hidden`: Include hidden files and directories
+- `--cxml`: Output in Claude XML format
 
 ### Examples
 
 1. Review changes in the current directory against the main branch:
 
    ```bash
-   code-review-agent
+   code-review-agent .
    ```
 
-2. Review changes in a specific folder against a different branch:
+2. Review changes in specific files or directories against a different branch:
 
    ```bash
-   code-review-agent --folder /path/to/repo --branch develop
+   code-review-agent /path/to/file1.py /path/to/directory --branch develop
    ```
 
-3. Provide the API key as an argument:
+3. Provide the API key as an argument and ignore certain patterns:
 
    ```bash
-   code-review-agent --api-key your_api_key_here
+   code-review-agent . --api-key your_api_key_here --ignore "*.txt" --ignore "test_*"
+   ```
+
+4. Include hidden files and use Claude XML format:
+
+   ```bash
+   code-review-agent . --include-hidden --cxml
    ```
 
 ### Setting up the API Key
@@ -140,14 +149,12 @@ You can add this line to your shell configuration file (e.g., `.bashrc` or `.zsh
 
 The Code Review Agent performs the following steps:
 
-1. Checks if the specified folder is a git repository.
-2. Retrieves the git diff between the current branch and the specified branch.
-3. Sends the diff to the Anthropic API for analysis.
-4. Displays the code review feedback, including:
-   - A summary of changes
-   - Identified issues (if any)
-   - A code quality score
-   - Reasoning for the score
+1. Processes the provided paths, applying ignore patterns and hidden file inclusion as specified.
+2. Checks if the specified paths are within a git repository.
+3. Merges the specified branch into the current branch.
+4. Retrieves the git diff for changed files.
+5. Sends the diff to the Anthropic API for analysis.
+6. Displays the code review feedback for each changed file.
 
 ## Requirements
 
@@ -160,7 +167,7 @@ The Code Review Agent performs the following steps:
 The main components of the Code Review Agent are:
 
 1. `code_review_agent.py`: The main script that handles the git operations and interacts with the Anthropic API.
-2. `system_prompt.md`: Contains the system prompt used to guide the AI in performing the code review.
+2. `system_prompt.xml`: Contains the system prompt used to guide the AI in performing the code review.
 3. `pyproject.toml`: Defines the project metadata and dependencies.
 4. `test_code_review_agent.py`: Contains unit tests for the Code Review Agent.
 5. `requirements.txt`: Lists all the Python dependencies required for the project.
